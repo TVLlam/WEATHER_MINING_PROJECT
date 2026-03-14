@@ -1,0 +1,10 @@
+# Cấu hình đường dẫn dữ liệu
+data:
+  raw_dir: "data/raw/"
+  processed_dir: "data/processed/"
+  dataset_name: "muthuj7/weather-dataset"
+
+# Tham số chia tập dữ liệu
+preprocessing:
+  test_size: 0.2
+  random_seed: 42
