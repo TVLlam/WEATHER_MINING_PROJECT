@@ -1,8 +1,51 @@
-# Bỏ qua dữ liệu thô và dữ liệu đã xử lý (do file có thể rất nặng)
+# ==============================================
+# Weather Mining Project - .gitignore
+# ==============================================
+
+# --- Dữ liệu (KHÔNG commit file nặng lên GitHub) ---
 data/raw/
 data/processed/
 
-# Bỏ qua các file môi trường ảo và bộ nhớ cache của Python
+# --- Output models (file nặng) ---
+outputs/models/*.pkl
+outputs/models/*.joblib
+outputs/models/*.h5
+
+# --- Output figures (tái tạo bằng pipeline) ---
+outputs/figures/*.png
+outputs/figures/*.jpg
+outputs/figures/*.svg
+
+# --- Python cache ---
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# --- Jupyter Notebook ---
 .ipynb_checkpoints/
+
+# --- Virtual Environment ---
+venv/
+env/
+.venv/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS files ---
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# --- Tạm thời / Scratch ---
+fix.txt
+hd.md
+*.tmp
+*.log
+.gemini/

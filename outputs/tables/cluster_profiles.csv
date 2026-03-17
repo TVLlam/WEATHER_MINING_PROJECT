@@ -1,0 +1,3 @@
+﻿Cluster,Temperature (C),Apparent Temperature (C),Humidity,Wind Speed (km/h),Wind Bearing (degrees),Visibility (km),Pressure (millibars),Season_Mode,Precip_Mode,Count,Cluster_Name
+0,3.901160009243689,1.7649866999046129,0.8550896096999734,10.417081874502168,182.27672802902913,8.080562428090982,1019.1792039118505,Winter,rain,45196,"Cụm 0: Lạnh, Ẩm ướt, Tầm nhìn thấp"
+1,19.012187674177017,18.867701481467023,0.6288767005640896,11.161249501297991,192.10309761286672,12.346797841235142,1014.7217588273182,Summer,rain,51233,"Cụm 1: Nóng, Hanh khô"
