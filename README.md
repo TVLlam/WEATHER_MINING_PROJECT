@@ -141,9 +141,8 @@ Chạy notebook theo thứ tự: `01` → `02` → `03` → `04` → `04b` → `
 |--------|---------|
 | Association Mining | 80 luật kết hợp, 4 mùa (Lift tới 4.25) |
 | Clustering | K=2, Silhouette=0.245 (Lạnh-Ẩm vs Nóng-Khô) |
-| Classification | Random Forest F1-macro=0.4423 (best of 4 models) |
-| Forecasting | Naive MAE=1.55°C, Holt-Winters MAE=4.88°C |
-| Anomaly Detection | Isolation Forest + LOF phát hiện ngày bất thường |
+| Classification | Random Forest F1-macro=**0.8171** (Label Grouping 27→5, class_weight=balanced) |
+| Forecasting | Holt-Winters (seasonal_periods=365), MAE/RMSE backtesting |
 
 ---
 
@@ -151,5 +150,6 @@ Chạy notebook theo thứ tự: `01` → `02` → `03` → `04` → `04b` → `
 
 | STT | Họ tên | MSSV | Vai trò |
 |-----|--------|------|---------|
-| 1 | [Tên SV 1] | [MSSV] | Trưởng nhóm |
-| 2 | [Tên SV 2] | [MSSV] | Thành viên |
+| 1 | Nguyễn Thị Thanh Nhã | 1771020519 | Trưởng nhóm |
+| 2 | Dương Ngọc Đông | 1771020158 | Thành viên |
+| 3 | Trần Văn Lâm | 1771020412 | Thành viên |
