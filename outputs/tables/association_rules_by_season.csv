@@ -5,8 +5,8 @@ Autumn,"Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low, Precip Type=r
 Autumn,"Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low",0.09032634032634032,0.8513142408787759,2.9822066670854057
 Autumn,"Precip Type=rain, Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low",0.09032634032634032,0.8513142408787759,2.9822066670854057
 Autumn,"Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.07059607059607059,0.828125,2.9030898876404496
-Autumn,"Precip Type=rain, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.07059607059607059,0.828125,2.9009733158355204
 Autumn,"Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.07059607059607059,0.828125,2.9009733158355204
+Autumn,"Precip Type=rain, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.07059607059607059,0.828125,2.9009733158355204
 Autumn,"Summary=Foggy, Wind_Bin=Low → Humidity_Bin=High",0.05544455544455545,0.9823008849557523,2.7367269465588535
 Autumn,"Summary=Foggy, Temp_Bin=Low → Humidity_Bin=High",0.052780552780552784,0.9799072642967542,2.73005823002032
 Autumn,"Humidity_Bin=Low, Precip Type=rain, Summary=Partly Cloudy → Temp_Bin=High",0.09032634032634032,0.6668715427166564,2.7246465888137674
@@ -23,40 +23,40 @@ Spring,"Humidity_Bin=Low, Precip Type=rain, Summary=Partly Cloudy → Temp_Bin=H
 Spring,"Humidity_Bin=Low, Summary=Partly Cloudy → Temp_Bin=High",0.11404808959156786,0.5398557786006627,2.0616379167693233
 Spring,"Humidity_Bin=Low, Summary=Partly Cloudy → Precip Type=rain, Temp_Bin=High",0.11404808959156786,0.5398557786006627,2.0616379167693233
 Spring,"Humidity_Bin=Low, Precip Type=rain, Wind_Bin=Normal → Temp_Bin=High",0.07707509881422925,0.531063829787234,2.028062625451626
-Spring,"Humidity_Bin=Low, Wind_Bin=Normal → Temp_Bin=High",0.07707509881422925,0.5277699464336059,2.0154837199653177
 Spring,"Humidity_Bin=Low, Wind_Bin=Normal → Precip Type=rain, Temp_Bin=High",0.07707509881422925,0.5277699464336059,2.0154837199653177
+Spring,"Humidity_Bin=Low, Wind_Bin=Normal → Temp_Bin=High",0.07707509881422925,0.5277699464336059,2.0154837199653177
 Spring,"Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.10379611330698288,0.8990727532097005,1.9530166380428589
 Spring,"Humidity_Bin=Low, Precip Type=rain, Summary=Mostly Cloudy → Temp_Bin=High",0.07703392621870883,0.5091156462585035,1.9442454113720964
 Spring,"Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.11404808959156786,0.8915352429996782,1.9366432324457727
-Spring,"Precip Type=rain, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.10379611330698288,0.8990727532097005,1.9298876738804422
 Spring,"Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.10379611330698288,0.8990727532097005,1.9298876738804422
-Spring,"Humidity_Bin=Low, Summary=Mostly Cloudy → Temp_Bin=High",0.07703392621870883,0.5048569886670266,1.9279821604944563
+Spring,"Precip Type=rain, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.10379611330698288,0.8990727532097005,1.9298876738804422
 Spring,"Humidity_Bin=Low, Summary=Mostly Cloudy → Precip Type=rain, Temp_Bin=High",0.07703392621870883,0.5048569886670266,1.9279821604944563
-Spring,"Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low",0.11404808959156786,0.8915352429996782,1.9137081733960393
+Spring,"Humidity_Bin=Low, Summary=Mostly Cloudy → Temp_Bin=High",0.07703392621870883,0.5048569886670266,1.9279821604944563
 Spring,"Precip Type=rain, Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low",0.11404808959156786,0.8915352429996782,1.9137081733960393
+Spring,"Summary=Partly Cloudy, Temp_Bin=High → Humidity_Bin=Low",0.11404808959156786,0.8915352429996782,1.9137081733960393
 Spring,"Temp_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.22171442687747037,0.8466981132075473,1.839245485518729
 Spring,"Temp_Bin=High, Wind_Bin=Normal → Humidity_Bin=Low, Precip Type=rain",0.07707509881422925,0.8372093023255813,1.8186333543407316
 Spring,"Precip Type=rain, Temp_Bin=High → Humidity_Bin=Low",0.22171442687747037,0.8466981132075473,1.817463877471048
 Spring,Temp_Bin=High → Humidity_Bin=Low,0.22171442687747037,0.8466981132075473,1.817463877471048
 Spring,"Precip Type=rain, Temp_Bin=High, Wind_Bin=Normal → Humidity_Bin=Low",0.07707509881422925,0.8372093023255813,1.7970958493047917
-Summer,"Temp_Bin=Normal, Wind_Bin=Low → Humidity_Bin=High",0.0707432571546222,0.6547256097560976,2.971964753818099
-Summer,"Temp_Bin=Normal, Wind_Bin=Low → Humidity_Bin=High, Precip Type=rain",0.0707432571546222,0.6547256097560976,2.971964753818099
 Summer,"Precip Type=rain, Temp_Bin=Normal, Wind_Bin=Low → Humidity_Bin=High",0.0707432571546222,0.6547256097560976,2.971964753818099
-Summer,"Temp_Bin=Normal → Humidity_Bin=High, Precip Type=rain",0.10665019559398806,0.5887701750397818,2.6725763926805794
-Summer,"Precip Type=rain, Temp_Bin=Normal → Humidity_Bin=High",0.10665019559398806,0.5887701750397818,2.6725763926805794
+Summer,"Temp_Bin=Normal, Wind_Bin=Low → Humidity_Bin=High, Precip Type=rain",0.0707432571546222,0.6547256097560976,2.971964753818099
+Summer,"Temp_Bin=Normal, Wind_Bin=Low → Humidity_Bin=High",0.0707432571546222,0.6547256097560976,2.971964753818099
 Summer,Temp_Bin=Normal → Humidity_Bin=High,0.10665019559398806,0.5887701750397818,2.6725763926805794
-Summer,"Humidity_Bin=High, Precip Type=rain, Summary=Partly Cloudy → Wind_Bin=Low",0.058760551780934735,0.7610666666666667,1.9351381007224373
-Summer,"Humidity_Bin=High, Summary=Partly Cloudy → Precip Type=rain, Wind_Bin=Low",0.058760551780934735,0.7610666666666667,1.9351381007224373
+Summer,"Precip Type=rain, Temp_Bin=Normal → Humidity_Bin=High",0.10665019559398806,0.5887701750397818,2.6725763926805794
+Summer,"Temp_Bin=Normal → Humidity_Bin=High, Precip Type=rain",0.10665019559398806,0.5887701750397818,2.6725763926805794
 Summer,"Humidity_Bin=High, Summary=Partly Cloudy → Wind_Bin=Low",0.058760551780934735,0.7610666666666667,1.9351381007224373
-Summer,"Humidity_Bin=High, Temp_Bin=Normal → Wind_Bin=Low",0.0707432571546222,0.6633204633204633,1.6866021831993983
+Summer,"Humidity_Bin=High, Summary=Partly Cloudy → Precip Type=rain, Wind_Bin=Low",0.058760551780934735,0.7610666666666667,1.9351381007224373
+Summer,"Humidity_Bin=High, Precip Type=rain, Summary=Partly Cloudy → Wind_Bin=Low",0.058760551780934735,0.7610666666666667,1.9351381007224373
 Summer,"Humidity_Bin=High, Temp_Bin=Normal → Precip Type=rain, Wind_Bin=Low",0.0707432571546222,0.6633204633204633,1.6866021831993983
 Summer,"Humidity_Bin=High, Precip Type=rain, Temp_Bin=Normal → Wind_Bin=Low",0.0707432571546222,0.6633204633204633,1.6866021831993983
-Summer,"Summary=Partly Cloudy, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.1003088326127239,0.865979381443299,1.6727894748926595
+Summer,"Humidity_Bin=High, Temp_Bin=Normal → Wind_Bin=Low",0.0707432571546222,0.6633204633204633,1.6866021831993983
 Summer,"Summary=Partly Cloudy, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.1003088326127239,0.865979381443299,1.6727894748926595
+Summer,"Summary=Partly Cloudy, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low, Precip Type=rain",0.1003088326127239,0.865979381443299,1.6727894748926595
 Summer,"Precip Type=rain, Summary=Partly Cloudy, Temp_Bin=High, Wind_Bin=High → Humidity_Bin=Low",0.1003088326127239,0.865979381443299,1.6727894748926595
 Summer,"Humidity_Bin=High → Precip Type=rain, Wind_Bin=Low",0.14412188593782171,0.6542056074766356,1.6634261519809543
-Summer,"Humidity_Bin=High, Precip Type=rain → Wind_Bin=Low",0.14412188593782171,0.6542056074766356,1.6634261519809543
 Summer,Humidity_Bin=High → Wind_Bin=Low,0.14412188593782171,0.6542056074766356,1.6634261519809543
+Summer,"Humidity_Bin=High, Precip Type=rain → Wind_Bin=Low",0.14412188593782171,0.6542056074766356,1.6634261519809543
 Summer,"Humidity_Bin=High, Temp_Bin=High → Wind_Bin=Low",0.07300802964793082,0.6444929116684842,1.638730013597439
 Summer,"Humidity_Bin=High, Temp_Bin=High → Precip Type=rain, Wind_Bin=Low",0.07300802964793082,0.6444929116684842,1.638730013597439
 Winter,"Summary=Foggy, Temp_Bin=Low, Wind_Bin=Low → Humidity_Bin=High, Precip Type=snow",0.05203088284659282,0.5496453900709221,2.4922277275818523

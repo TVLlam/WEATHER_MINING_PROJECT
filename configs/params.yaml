@@ -72,3 +72,10 @@ forecasting:
   arima_order: [5, 1, 2]
   seasonal_order: [1, 1, 1, 12]
   n_lags_acf: 50
+
+# --- Tham số Anomaly Detection (Nhánh thay thế) ---
+anomaly_detection:
+  contamination: 0.05          # Tỷ lệ anomaly giả định (5%)
+  random_seed: 42
+  n_neighbors: 20              # Số láng giềng cho LOF
+  n_estimators_if: 200         # Số cây cho Isolation Forest

@@ -1,2 +1,5 @@
-Model,F1_macro,Accuracy
-Random Forest,0.8171,0.8292
+﻿Model,F1_macro,Accuracy,CV_F1_mean,CV_F1_std
+Random Forest,0.755,0.8898,0.6977,0.0171
+XGBoost,0.7324,0.8931,0.6832,0.0193
+Decision Tree,0.6279,0.7165,0.6272,0.0032
+Logistic Regression,0.4721,0.4488,0.4707,0.003

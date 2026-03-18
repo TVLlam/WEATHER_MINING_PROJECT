@@ -1,0 +1,4 @@
+﻿Method,N_Anomalies,Pct_Anomalies
+Isolation Forest,4822,5.0
+LOF,4822,5.0
+Consensus (both),1058,1.1

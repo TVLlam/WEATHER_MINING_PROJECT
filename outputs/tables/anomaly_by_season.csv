@@ -1,0 +1,5 @@
+﻿Season,Total,IF_Anomalies,IF_Pct,LOF_Anomalies,LOF_Pct,Consensus,Consensus_Pct
+Spring,24288,673,2.77,1203,4.95,213,0.88
+Summer,24285,1292,5.32,1045,4.3,237,0.98
+Autumn,24024,482,2.01,960,4.0,88,0.37
+Winter,23832,2375,9.97,1614,6.77,520,2.18

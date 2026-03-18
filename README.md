@@ -61,10 +61,11 @@ Xây dựng pipeline khai phá dữ liệu thời tiết toàn diện từ bộ 
 ```
 WEATHER_MINING_PROJECT/
 ├── README.md                          # File này
+├── CHECKLIST.md                       # Danh sách chức năng đã hoàn thành
 ├── requirements.txt                   # Dependencies
 ├── .gitignore
 ├── configs/
-│   └── params.yaml                    # Toàn bộ tham số
+│   └── params.yaml                    # Toàn bộ tham số (8 sections)
 ├── data/
 │   ├── raw/                           # Dữ liệu gốc (không commit)
 │   └── processed/                     # Parquet sau tiền xử lý
@@ -77,30 +78,29 @@ WEATHER_MINING_PROJECT/
 │   └── 05_forecasting_evaluation.ipynb # Chuỗi thời gian + Insights
 ├── src/
 │   ├── data/
-│   │   ├── loader.py                  # Config loader
+│   │   ├── loader.py                  # Config loader + Path resolver
 │   │   └── cleaner.py                 # WeatherCleaner (3 bẫy)
 │   ├── features/
-│   │   └── builder.py                 # FeatureBuilder
+│   │   └── builder.py                 # FeatureBuilder (DateTime + Binning + Scaling)
 │   ├── mining/
-│   │   ├── association.py             # AssociationMiner (FP-Growth)
-│   │   └── clustering.py             # WeatherClusterer (K-Means)
+│   │   ├── association.py             # AssociationMiner (FP-Growth/Apriori)
+│   │   └── clustering.py             # WeatherClusterer (K-Means + Profiling)
 │   ├── models/
-│   │   ├── classification.py          # WeatherClassifier (4 models)
-│   │   ├── forecasting.py            # TimeForecaster (Naive + HW)
+│   │   ├── classification.py          # WeatherClassifier (LR, DT, RF, XGBoost)
+│   │   ├── forecasting.py            # TimeForecaster (Naive + Holt-Winters)
 │   │   └── anomaly.py                # WeatherAnomalyDetector (IF + LOF)
 │   ├── evaluation/
-│   │   └── metrics.py                 # Hàm tính metric dùng chung
+│   │   ├── metrics.py                 # Hàm tính metric dùng chung
+│   │   └── report.py                 # PipelineReporter (tổng hợp kết quả)
 │   └── visualization/
 │       └── plots.py                   # Hàm vẽ dùng chung
 ├── scripts/
-│   ├── run_pipeline.py                # Chạy toàn bộ pipeline
-│   └── generate_notebooks.py
+│   └── run_pipeline.py                # Chạy toàn bộ 4-phase pipeline
 ├── outputs/
-│   ├── figures/                       # Biểu đồ PNG
-│   ├── tables/                        # Bảng CSV
-│   ├── models/                        # Model artifacts
-│   └── reports/
-└── app.py                             # Streamlit Demo App
+│   ├── figures/                       # 10 biểu đồ PNG
+│   ├── tables/                        # 7 bảng CSV
+│   └── models/                        # Model artifacts (joblib)
+└── app.py                             # Streamlit Demo App (3 trang)
 ```
 
 ---
@@ -117,15 +117,24 @@ pip install -r requirements.txt
 ### 6.2 Tải dữ liệu
 Tải dataset từ [Kaggle](https://www.kaggle.com/datasets/budincsevity/szeged-weather) và lưu vào `data/raw/weather_raw.csv`.
 
+Hoặc dùng Python:
+```python
+import kagglehub
+path = kagglehub.dataset_download("budincsevity/szeged-weather")
+# Copy file vào data/raw/weather_raw.csv
+```
+
 ### 6.3 Chạy toàn bộ pipeline
 ```bash
 python scripts/run_pipeline.py
 ```
+Pipeline chạy 4 phase trong ~330 giây, tự động tạo tất cả outputs.
 
 ### 6.4 Chạy Streamlit Demo
 ```bash
 streamlit run app.py
 ```
+Mở trình duyệt tại `http://localhost:8501`
 
 ### 6.5 Mở Jupyter Notebooks
 ```bash
@@ -137,16 +146,58 @@ Chạy notebook theo thứ tự: `01` → `02` → `03` → `04` → `04b` → `
 
 ## 7. Kết quả Chính
 
-| Module | Kết quả |
-|--------|---------|
-| Association Mining | 80 luật kết hợp, 4 mùa (Lift tới 4.25) |
-| Clustering | K=2, Silhouette=0.245 (Lạnh-Ẩm vs Nóng-Khô) |
-| Classification | Random Forest F1-macro=**0.8171** (Label Grouping 27→5, class_weight=balanced) |
-| Forecasting | Holt-Winters (seasonal_periods=365), MAE/RMSE backtesting |
+### 7.1 Tổng hợp kết quả pipeline
+
+| Module | Phương pháp | Kết quả |
+|--------|-------------|---------|
+| **Tiền xử lý** | WeatherCleaner (3 bẫy) | 96,429 rows × 26 cols |
+| **Association Mining** | FP-Growth (4 mùa) | **80 luật** (Lift tới 4.25 — mùa Thu) |
+| **Clustering** | K-Means (Elbow + Silhouette) | **K=2**, Silhouette=0.247 |
+| **Classification** | Random Forest 🏆 | **F1-macro=0.755**, Accuracy=0.890 |
+| **Forecasting** | Naive Baseline | MAE=**1.55°C**, RMSE=2.09°C |
+| **Anomaly Detection** | Isolation Forest + LOF | **1,058 ngày consensus** (1.1%) |
+
+### 7.2 So sánh mô hình phân loại
+
+| Model | F1-macro | Accuracy | CV F1 |
+|-------|:--------:|:--------:|:-----:|
+| **Random Forest** 🏆 | **0.7550** | 0.8898 | 0.6977±0.017 |
+| XGBoost | 0.7324 | 0.8931 | 0.6832±0.019 |
+| Decision Tree | 0.6279 | 0.7165 | 0.6272±0.003 |
+| Logistic Regression | 0.4721 | 0.4488 | 0.4707±0.003 |
+
+### 7.3 Anomaly Detection — Nhánh thay thế
+
+| Method | Anomalies | % |
+|--------|:---------:|:-:|
+| Isolation Forest | 4,822 | 5.0% |
+| LOF | 4,822 | 5.0% |
+| **Consensus (cả hai)** | **1,058** | **1.1%** |
+
+Mùa Đông có tỷ lệ anomaly cao nhất (IF=10.0%, LOF=6.8%).
 
 ---
 
-## 8. Thành viên nhóm
+## 8. Danh sách Chức năng đã Hoàn thành
+
+| Tiêu chí (Rubric) | Điểm | Trạng thái |
+|-------------------|:----:|:----------:|
+| A. Bài toán + Data Dictionary | 1.0 | ✅ Đạt |
+| B. EDA & Tiền xử lý | 1.5 | ✅ Đạt |
+| C. Mining Core (Association + Clustering) | 2.0 | ✅ Đạt |
+| D. Mô hình + Baseline ≥ 2 | 2.0 | ✅ Đạt |
+| E. Thực nghiệm + Metric đúng | 1.0 | ✅ Đạt |
+| F. Nhánh thay thế (Anomaly Detection) | 1.0 | ✅ Đạt |
+| G. Phân tích lỗi + Insight hành động | 1.5 | ✅ Đạt |
+| H. Repo chuẩn + Reproducible | 1.0 | ✅ Đạt |
+| **TỔNG** | **11.0** | **✅ Đầy đủ** |
+| Bonus: GUI App (Streamlit 3 trang) | +bonus | ✅ Đạt |
+
+> Chi tiết xem tại [CHECKLIST.md](CHECKLIST.md)
+
+---
+
+## 9. Thành viên nhóm
 
 | STT | Họ tên | MSSV | Vai trò |
 |-----|--------|------|---------|
