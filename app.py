@@ -116,6 +116,16 @@ def load_cluster_profiles():
         return pd.read_csv("outputs/tables/cluster_profiles.csv")
     except: return None
 
+@st.cache_data
+def load_anomaly_results():
+    try:
+        summary = pd.read_csv("outputs/tables/anomaly_summary.csv")
+        by_season = pd.read_csv("outputs/tables/anomaly_by_season.csv")
+        top_days = pd.read_csv("outputs/tables/anomaly_top_days.csv")
+        return summary, by_season, top_days
+    except:
+        return None, None, None
+
 @st.cache_resource
 def load_classifier():
     try:
@@ -166,6 +176,23 @@ if page == "🌍 Bảng điều khiển Thời tiết":
         col4.metric("📊 Tổng quan trắc", f"{len(df):,}",
                      delta="96K+ bản ghi")
 
+        # ── KPI Row 2: Thêm thống kê ──
+        st.markdown("")
+        c5, c6, c7, c8 = st.columns(4)
+        c5.metric("🌡️ Khoảng nhiệt độ",
+                  f"{df['Temperature (C)'].max() - df['Temperature (C)'].min():.1f}°C",
+                  delta=f"{df['Temperature (C)'].min():.0f}°C → {df['Temperature (C)'].max():.0f}°C")
+        c6.metric("📊 Áp suất TB", f"{df['Pressure (millibars)'].mean():.0f} mb",
+                  delta=f"Min {df['Pressure (millibars)'].min():.0f} mb")
+        c7.metric("👁️ Tầm nhìn TB", f"{df['Visibility (km)'].mean():.1f} km",
+                  delta=f"Min {df['Visibility (km)'].min():.1f} km")
+        if "Year" in df.columns:
+            n_years = df["Year"].nunique()
+            n_days = int(len(df) / 24) if len(df) > 8760 else len(df)
+            c8.metric("📅 Phạm vi thời gian", f"{n_years} năm", delta=f"~{n_days:,} ngày")
+        else:
+            c8.metric("📅 Số cột dữ liệu", f"{df.shape[1]} cột")
+
         st.markdown("")
 
         # ── Interactive Plotly Chart ──
@@ -188,7 +215,7 @@ if page == "🌍 Bảng điều khiển Thời tiết":
             ))
             fig.add_trace(go.Scatter(
                 x=df_monthly["Formatted Date"],
-                y=df_monthly["Humidity"] * 40,  # Scale to match temp range
+                y=df_monthly["Humidity"] * 40,
                 name="💧 Độ ẩm (×40)",
                 line=dict(color="#4ECDC4", width=2.5),
                 yaxis="y2",
@@ -208,21 +235,126 @@ if page == "🌍 Bảng điều khiển Thời tiết":
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        # ── Season breakdown ──
-        st.markdown('<div class="section-header">🍂 Phân bố theo Mùa</div>', unsafe_allow_html=True)
-        if "Season" in df.columns:
-            season_data = df["Season"].value_counts().reset_index()
-            season_data.columns = ["Mùa", "Số bản ghi"]
-            fig_season = px.bar(
-                season_data, x="Mùa", y="Số bản ghi",
-                color="Mùa",
-                color_discrete_map={"Spring": "#4CAF50", "Summer": "#FF9800",
-                                    "Autumn": "#9C27B0", "Winter": "#2196F3"},
+        # ── 2 cột: Phân bố nhiệt độ + Loại thời tiết ──
+        col_left, col_right = st.columns(2)
+
+        with col_left:
+            st.markdown('<div class="section-header">🌡️ Phân bố Nhiệt độ</div>', unsafe_allow_html=True)
+            fig_hist = px.histogram(
+                df, x="Temperature (C)", nbins=60,
+                color_discrete_sequence=["#FF6B6B"],
                 template="plotly_dark",
+                labels={"Temperature (C)": "Nhiệt độ (°C)", "count": "Số bản ghi"},
             )
-            fig_season.update_layout(height=350, showlegend=False,
-                                     margin=dict(l=20, r=20, t=20, b=20))
-            st.plotly_chart(fig_season, use_container_width=True)
+            fig_hist.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20),
+                                    showlegend=False, yaxis_title="Số bản ghi")
+            fig_hist.add_vline(x=df["Temperature (C)"].mean(), line_dash="dash",
+                               line_color="yellow", annotation_text=f"TB: {df['Temperature (C)'].mean():.1f}°C")
+            st.plotly_chart(fig_hist, use_container_width=True)
+
+        with col_right:
+            st.markdown('<div class="section-header">🌤️ Phân bố Loại Thời tiết</div>', unsafe_allow_html=True)
+            if "Summary" in df.columns:
+                summary_counts = df["Summary"].value_counts().head(8).reset_index()
+                summary_counts.columns = ["Loại", "Số lượng"]
+                fig_donut = px.pie(
+                    summary_counts, names="Loại", values="Số lượng",
+                    hole=0.45, template="plotly_dark",
+                    color_discrete_sequence=px.colors.qualitative.Set2,
+                )
+                fig_donut.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20),
+                                         legend=dict(font=dict(size=10)))
+                fig_donut.update_traces(textposition="inside", textinfo="percent+label",
+                                         textfont_size=10)
+                st.plotly_chart(fig_donut, use_container_width=True)
+
+        # ── 2 cột: Nhiệt độ theo năm + Phân bố mùa ──
+        col_a, col_b = st.columns(2)
+
+        with col_a:
+            st.markdown('<div class="section-header">📊 Xu hướng Nhiệt độ TB theo Năm</div>', unsafe_allow_html=True)
+            if "Year" in df.columns:
+                yearly = df.groupby("Year").agg(
+                    Temp_Mean=("Temperature (C)", "mean"),
+                    Temp_Min=("Temperature (C)", "min"),
+                    Temp_Max=("Temperature (C)", "max"),
+                ).reset_index()
+                fig_year = go.Figure()
+                fig_year.add_trace(go.Scatter(
+                    x=yearly["Year"], y=yearly["Temp_Max"],
+                    name="Cao nhất", line=dict(color="#FF6B6B", width=1),
+                    fill=None, mode="lines",
+                ))
+                fig_year.add_trace(go.Scatter(
+                    x=yearly["Year"], y=yearly["Temp_Min"],
+                    name="Thấp nhất", line=dict(color="#4ECDC4", width=1),
+                    fill="tonexty", fillcolor="rgba(78,205,196,0.15)", mode="lines",
+                ))
+                fig_year.add_trace(go.Bar(
+                    x=yearly["Year"], y=yearly["Temp_Mean"],
+                    name="Trung bình", marker_color="#667eea", opacity=0.7,
+                ))
+                fig_year.update_layout(template="plotly_dark", height=350,
+                                        margin=dict(l=20, r=20, t=20, b=20),
+                                        yaxis_title="°C", xaxis_title="",
+                                        legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
+                                        barmode="overlay")
+                st.plotly_chart(fig_year, use_container_width=True)
+
+        with col_b:
+            st.markdown('<div class="section-header">🍂 Phân bố theo Mùa</div>', unsafe_allow_html=True)
+            if "Season" in df.columns:
+                season_data = df["Season"].value_counts().reset_index()
+                season_data.columns = ["Mùa", "Số bản ghi"]
+                fig_season = px.bar(
+                    season_data, x="Mùa", y="Số bản ghi",
+                    color="Mùa",
+                    color_discrete_map={"Spring": "#4CAF50", "Summer": "#FF9800",
+                                        "Autumn": "#9C27B0", "Winter": "#2196F3"},
+                    template="plotly_dark",
+                )
+                fig_season.update_layout(height=350, showlegend=False,
+                                         margin=dict(l=20, r=20, t=20, b=20))
+                st.plotly_chart(fig_season, use_container_width=True)
+
+        # ── Correlation Heatmap ──
+        st.markdown('<div class="section-header">🔥 Ma trận Tương quan (Correlation Heatmap)</div>', unsafe_allow_html=True)
+        num_cols = ["Temperature (C)", "Apparent Temperature (C)", "Humidity",
+                    "Wind Speed (km/h)", "Wind Bearing (degrees)", "Visibility (km)", "Pressure (millibars)"]
+        available_cols = [c for c in num_cols if c in df.columns]
+        if len(available_cols) >= 3:
+            corr = df[available_cols].corr()
+            # Shorten labels
+            short_labels = {"Temperature (C)": "Temp", "Apparent Temperature (C)": "Cảm nhận",
+                            "Humidity": "Độ ẩm", "Wind Speed (km/h)": "Gió",
+                            "Wind Bearing (degrees)": "Hướng gió", "Visibility (km)": "Tầm nhìn",
+                            "Pressure (millibars)": "Áp suất"}
+            corr = corr.rename(index=short_labels, columns=short_labels)
+            fig_corr = px.imshow(
+                corr, text_auto=".2f", color_continuous_scale="RdBu_r",
+                zmin=-1, zmax=1, template="plotly_dark",
+                aspect="auto",
+            )
+            fig_corr.update_layout(height=450, margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig_corr, use_container_width=True)
+
+        # ── Phân tích Mưa / Tuyết theo tháng ──
+        if "Precip Type" in df.columns and "Month" in df.columns:
+            st.markdown('<div class="section-header">🌧️ Phân bố Mưa & Tuyết theo Tháng</div>', unsafe_allow_html=True)
+            precip_month = df.groupby(["Month", "Precip Type"]).size().reset_index(name="Count")
+            month_names = {1:"T1",2:"T2",3:"T3",4:"T4",5:"T5",6:"T6",
+                           7:"T7",8:"T8",9:"T9",10:"T10",11:"T11",12:"T12"}
+            precip_month["Tháng"] = precip_month["Month"].map(month_names)
+            fig_precip = px.bar(
+                precip_month, x="Tháng", y="Count", color="Precip Type",
+                barmode="group", template="plotly_dark",
+                color_discrete_map={"rain": "#4ECDC4", "snow": "#A5B4FC"},
+                labels={"Count": "Số bản ghi", "Precip Type": "Loại"},
+            )
+            fig_precip.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20),
+                                      legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"))
+            st.plotly_chart(fig_precip, use_container_width=True)
+
     else:
         st.warning("⚠️ Chưa có dữ liệu. Chạy `python scripts/run_pipeline.py` trước.")
 
@@ -234,7 +366,7 @@ elif page == "🧠 Khai phá Tri thức":
     st.markdown('<p class="main-title">KHAI PHÁ TRI THỨC</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Phát hiện luật kết hợp & phân cụm mô hình thời tiết</p>', unsafe_allow_html=True)
 
-    tab1, tab2 = st.tabs(["🔗 Luật Kết Hợp", "🎯 Phân Cụm K-Means"])
+    tab1, tab2, tab3 = st.tabs(["🔗 Luật Kết Hợp", "🎯 Phân Cụm K-Means", "🔍 Phát hiện Bất thường"])
 
     # ── TAB 1: LUẬT KẾT HỢP ──
     with tab1:
@@ -451,6 +583,68 @@ cần đẩy mạnh dự trữ nước giải khát và thiết bị làm mát.
         else:
             st.warning("⚠️ Chưa có kết quả phân cụm.")
 
+    # ── TAB 3: ANOMALY DETECTION ──
+    with tab3:
+        st.markdown('<div class="section-header">🔍 Phát hiện Ngày Thời Tiết Bất Thường</div>', unsafe_allow_html=True)
+        st.markdown("So sánh **Isolation Forest** vs **Local Outlier Factor (LOF)** để tìm ngày thời tiết cực đoan.")
+
+        anom_summary, anom_season, anom_top = load_anomaly_results()
+
+        if anom_summary is not None:
+            # ── KPI Cards ──
+            a1, a2, a3 = st.columns(3)
+            if len(anom_summary) >= 3:
+                a1.metric("🌲 Isolation Forest", f"{int(anom_summary.iloc[0]['N_Anomalies']):,} ngày",
+                          delta=f"{anom_summary.iloc[0]['Pct_Anomalies']:.1f}%")
+                a2.metric("🔵 LOF", f"{int(anom_summary.iloc[1]['N_Anomalies']):,} ngày",
+                          delta=f"{anom_summary.iloc[1]['Pct_Anomalies']:.1f}%")
+                a3.metric("🎯 Consensus (cả hai)", f"{int(anom_summary.iloc[2]['N_Anomalies']):,} ngày",
+                          delta=f"{anom_summary.iloc[2]['Pct_Anomalies']:.1f}%")
+
+            st.markdown("")
+
+            # ── Anomaly theo mùa ──
+            if anom_season is not None and not anom_season.empty:
+                st.markdown('<div class="section-header">📊 Phân bố Anomaly theo Mùa</div>', unsafe_allow_html=True)
+
+                fig_as = go.Figure()
+                fig_as.add_trace(go.Bar(
+                    x=anom_season["Season"], y=anom_season["IF_Pct"],
+                    name="Isolation Forest", marker_color="#FF6B6B",
+                ))
+                fig_as.add_trace(go.Bar(
+                    x=anom_season["Season"], y=anom_season["LOF_Pct"],
+                    name="LOF", marker_color="#FF9800",
+                ))
+                fig_as.add_trace(go.Bar(
+                    x=anom_season["Season"], y=anom_season["Consensus_Pct"],
+                    name="Consensus", marker_color="#9C27B0",
+                ))
+                fig_as.update_layout(
+                    template="plotly_dark", height=400, barmode="group",
+                    yaxis_title="% Ngày bất thường",
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
+                )
+                st.plotly_chart(fig_as, use_container_width=True)
+
+            # ── Top ngày bất thường ──
+            if anom_top is not None and not anom_top.empty:
+                st.markdown('<div class="section-header">🚨 Top 10 Ngày Bất Thường Nhất</div>', unsafe_allow_html=True)
+                display_cols = [c for c in ["Formatted Date", "Consensus", "Season",
+                                "Temperature (C)", "Humidity", "Wind Speed (km/h)",
+                                "Visibility (km)", "Pressure (millibars)"] if c in anom_top.columns]
+                st.dataframe(anom_top[display_cols].head(10), use_container_width=True, hide_index=True)
+
+            # ── Insight ──
+            st.markdown("""
+> 💡 **Insight:** Mùa Đông có tỷ lệ anomaly **cao nhất** — những ngày cực lạnh, độ ẩm
+> cực thấp (0%), gió mạnh và tầm nhìn gần 0 km tạo thành các ngày thời tiết bất thường.
+> Phát hiện này hữu ích cho **hệ thống cảnh báo sớm** và **đánh giá rủi ro khí hậu**.
+            """)
+        else:
+            st.warning("⚠️ Chưa có kết quả anomaly. Chạy pipeline Phase 4 trước.")
+
 
 # ═══════════════════════════════════════════════════════════════
 # TRANG 3: CỖ MÁY AI DỰ BÁO
@@ -518,6 +712,34 @@ elif page == "🔮 Cỗ máy AI Dự báo":
                 st.table(params_df)
 
                 st.info(f"ℹ️ Mô hình: **Random Forest** · F1-macro = **{f1_score_val:.4f}** · Số nhóm thời tiết: **5**")
+
+                # ── Bảng so sánh 4 mô hình ──
+                try:
+                    cls_results = pd.read_csv("outputs/tables/classification_results.csv")
+                    if not cls_results.empty:
+                        st.markdown('<div class="section-header">📊 So sánh Hiệu năng 4 Mô hình</div>', unsafe_allow_html=True)
+                        fig_comp = go.Figure()
+                        fig_comp.add_trace(go.Bar(
+                            x=cls_results["Model"], y=cls_results["F1_macro"],
+                            name="F1-macro", marker_color="#667eea",
+                            text=cls_results["F1_macro"].apply(lambda x: f"{x:.4f}"),
+                            textposition="outside",
+                        ))
+                        fig_comp.add_trace(go.Bar(
+                            x=cls_results["Model"], y=cls_results["Accuracy"],
+                            name="Accuracy", marker_color="#4ECDC4",
+                            text=cls_results["Accuracy"].apply(lambda x: f"{x:.4f}"),
+                            textposition="outside",
+                        ))
+                        fig_comp.update_layout(
+                            template="plotly_dark", height=400, barmode="group",
+                            yaxis_title="Score", yaxis_range=[0, 1.05],
+                            margin=dict(l=20, r=20, t=20, b=20),
+                            legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
+                        )
+                        st.plotly_chart(fig_comp, use_container_width=True)
+                except:
+                    pass
             else:
                 st.error("❌ Chưa có model. Chạy `python src/models/classification.py` trước!")
 
