@@ -2,6 +2,10 @@
 # Weather Mining Project - .gitignore
 # ==============================================
 
+# --- Dữ liệu (KHÔNG commit file nặng lên GitHub) ---
+data/raw/
+data/processed/
+
 # --- Output models (file nặng) ---
 outputs/models/*.pkl
 outputs/models/*.joblib
