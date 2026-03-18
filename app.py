@@ -706,23 +706,56 @@ elif page == "🔮 Cỗ máy AI Dự báo":
     with tab_cls:
         model, le, f1_score_val = load_classifier()
 
-        st.markdown('<div class="section-header">Nhập thông số để AI dự đoán</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">⚡ Kịch bản mẫu — Nhấn để AI dự đoán ngay</div>', unsafe_allow_html=True)
+
+        # ═══ PRESET SCENARIOS ═══
+        presets = {
+            "☀️ Trời nắng": dict(temp=28.0, apparent_temp=30.0, humidity=0.35, wind_speed=5.0, wind_bearing=180.0, visibility=14.0, pressure=1018.0),
+            "☁️ Nhiều mây": dict(temp=15.0, apparent_temp=13.0, humidity=0.72, wind_speed=10.0, wind_bearing=200.0, visibility=9.0, pressure=1012.0),
+            "🌧️ Trời mưa": dict(temp=8.0, apparent_temp=5.0, humidity=0.92, wind_speed=18.0, wind_bearing=250.0, visibility=4.0, pressure=1005.0),
+            "🌫️ Sương mù": dict(temp=2.0, apparent_temp=-1.0, humidity=0.95, wind_speed=3.0, wind_bearing=90.0, visibility=0.5, pressure=1020.0),
+            "💨 Gió mạnh": dict(temp=12.0, apparent_temp=6.0, humidity=0.55, wind_speed=45.0, wind_bearing=300.0, visibility=11.0, pressure=998.0),
+        }
+
+        # Initialize session state
+        if "preset_values" not in st.session_state:
+            st.session_state.preset_values = presets["☁️ Nhiều mây"]
+
+        btn_cols = st.columns(5)
+        for i, (label, values) in enumerate(presets.items()):
+            if btn_cols[i].button(label, use_container_width=True, key=f"preset_{i}"):
+                st.session_state.preset_values = values
+                st.session_state.auto_predict = True
+
+        pv = st.session_state.preset_values
+
+        st.markdown("")
+        st.markdown('<div class="section-header">🎛️ Điều chỉnh thông số (hoặc dùng kịch bản mẫu ở trên)</div>', unsafe_allow_html=True)
 
         with st.form("prediction_form"):
             col1, col2 = st.columns(2)
             with col1:
-                temp = st.slider("🌡️ Nhiệt độ (°C)", -20.0, 40.0, 15.0, 0.5)
-                humidity = st.slider("💧 Độ ẩm", 0.0, 1.0, 0.65, 0.01)
-                wind_speed = st.slider("💨 Tốc độ gió (km/h)", 0.0, 60.0, 12.0, 0.5)
+                temp = st.slider("🌡️ Nhiệt độ (°C)", -20.0, 40.0, pv["temp"], 0.5)
+                humidity = st.slider("💧 Độ ẩm", 0.0, 1.0, pv["humidity"], 0.01)
+                wind_speed = st.slider("💨 Tốc độ gió (km/h)", 0.0, 60.0, pv["wind_speed"], 0.5)
             with col2:
-                apparent_temp = st.slider("🌡️ Nhiệt độ cảm nhận (°C)", -25.0, 45.0, 13.0, 0.5)
-                visibility = st.slider("👁️ Tầm nhìn (km)", 0.0, 16.0, 10.0, 0.5)
-                pressure = st.slider("📊 Áp suất (mbar)", 950.0, 1050.0, 1015.0, 1.0)
-                wind_bearing = st.slider("🧭 Hướng gió (°)", 0.0, 360.0, 180.0, 5.0)
+                apparent_temp = st.slider("🌡️ Nhiệt độ cảm nhận (°C)", -25.0, 45.0, pv["apparent_temp"], 0.5)
+                visibility = st.slider("👁️ Tầm nhìn (km)", 0.0, 16.0, pv["visibility"], 0.5)
+                pressure = st.slider("📊 Áp suất (mbar)", 950.0, 1050.0, pv["pressure"], 1.0)
+                wind_bearing = st.slider("🧭 Hướng gió (°)", 0.0, 360.0, pv["wind_bearing"], 5.0)
 
             submitted = st.form_submit_button("🔮 DỰ ĐOÁN!", use_container_width=True, type="primary")
 
-        if submitted:
+        # Auto-predict when preset button clicked
+        should_predict = submitted or st.session_state.get("auto_predict", False)
+        if st.session_state.get("auto_predict"):
+            st.session_state.auto_predict = False
+            temp, apparent_temp = pv["temp"], pv["apparent_temp"]
+            humidity, wind_speed = pv["humidity"], pv["wind_speed"]
+            wind_bearing, visibility, pressure = pv["wind_bearing"], pv["visibility"], pv["pressure"]
+
+
+        if should_predict:
             if model is not None and le is not None:
                 features = np.array([[temp, apparent_temp, humidity, wind_speed,
                                       wind_bearing, visibility, pressure]])
