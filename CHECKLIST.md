@@ -190,6 +190,140 @@
 | **TỔNG** | **11.0** | **✅ ĐẦY ĐỦ** |
 | Bonus: GUI App (Streamlit) | +bonus | ✅ Đạt |
 
+
+---
+
+## 🔍 MÔ TẢ CHI TIẾT CHỨC NĂNG TỪNG TIÊU CHÍ
+
+### A. Bài toán + Data Dictionary (1.0đ)
+**Mục đích:** Xác định rõ bài toán cần giải quyết, mô tả nguồn dữ liệu và ý nghĩa từng cột.
+
+| Chức năng | Mô tả hoạt động | Vị trí |
+|-----------|-----------------|--------|
+| Mục tiêu dự án | Xây dựng pipeline khai phá dữ liệu thời tiết Szeged Hungary: khai phá luật, phân cụm, phân loại, dự báo, phát hiện bất thường | `README.md` phần 1 |
+| Data Dictionary | Bảng mô tả chi tiết 12 cột dữ liệu: tên cột, kiểu dữ liệu, ý nghĩa, vai trò (feature/target/bẫy) | `README.md` phần 3 |
+| Phân tích rủi ro | Liệt kê 6 rủi ro dữ liệu (mất cân bằng lớp, missing, outlier, cột vô nghĩa, leakage, high cardinality) kèm giải pháp | `README.md` phần 4 |
+
+---
+
+### B. EDA & Tiền xử lý (1.5đ)
+**Mục đích:** Làm sạch dữ liệu thô, xử lý 3 "bẫy" chính, chuẩn bị dữ liệu cho các module tiếp theo.
+
+| Chức năng | Mô tả hoạt động | Module/File |
+|-----------|-----------------|-------------|
+| Drop Loud Cover | Xóa cột `Loud Cover` vì toàn bộ 96K dòng = 0, không có ý nghĩa phân tích | `cleaner.py` → `drop_loud_cover()` |
+| Fill Missing Precip Type | Điền 517 giá trị NaN ở cột `Precip Type` bằng mode ("rain") | `cleaner.py` → `handle_missing_precip_type()` |
+| Fix Pressure Outlier | Thay 1,288 giá trị Pressure = 0 (lỗi sensor) → NaN → Median (1016.55 mbar) | `cleaner.py` → `handle_pressure_outliers()` |
+| Feature Engineering | Trích xuất Year/Month/Day/Hour/Season, tạo Temp_Bin/Humidity_Bin/Wind_Bin, chuẩn hóa StandardScaler | `builder.py` → `run()` |
+
+**Trên Web App:** Trang 🌍 "Bảng điều khiển" hiển thị dữ liệu đã được làm sạch — 4 KPI cards (Nhiệt độ TB, Độ ẩm TB, Tốc độ gió TB, Tổng bản ghi) + biểu đồ Plotly interactive.
+
+---
+
+### C. Mining Core — Khai phá Tri thức (2.0đ)
+**Mục đích:** Phát hiện quy luật ẩn trong dữ liệu bằng luật kết hợp và phân cụm.
+
+| Chức năng | Mô tả hoạt động | Module/File |
+|-----------|-----------------|-------------|
+| Luật kết hợp theo mùa | Dùng FP-Growth tìm các điều kiện thời tiết đồng xuất hiện, tách riêng 4 mùa để so sánh | `association.py` → `mine_rules_by_season()` |
+| Top luật + Lift | Lọc luật theo min_support=0.05, min_confidence=0.5, min_lift=1.0, sắp xếp theo Lift giảm dần | `association.py` → `_mine_rules()` |
+| Diễn giải tự nhiên | Chuyển luật dạng "A → B" thành câu diễn giải có nghĩa bằng tiếng Việt | `association.py` → `interpret_rules()` |
+| Phân cụm K-Means | Nhóm 96K bản ghi thành K cụm theo 7 đặc trưng số, tìm K tối ưu bằng Elbow + Silhouette | `clustering.py` → `find_optimal_k()` + `fit()` |
+| Hồ sơ cụm | Tính Mean/Median/Mode cho mỗi cụm, tự động đặt tên ("Lạnh, Ẩm ướt" / "Nóng, Hanh khô") | `clustering.py` → `cluster_profiling()` |
+
+**Trên Web App:** Trang 🧠 "Khai phá Tri thức":
+- **Tab Luật Kết Hợp:** Chọn mùa → hiển thị top 5 luật được phiên dịch Tiếng Việt + insight chuyên gia
+- **Tab Phân Cụm:** Biểu đồ scatter Nhiệt độ vs Độ ẩm có màu theo cụm + bảng hồ sơ cụm + actionable insights
+
+---
+
+### D. Mô hình hóa + Baseline ≥ 2 (2.0đ)
+**Mục đích:** Xây dựng mô hình dự đoán loại thời tiết và dự báo nhiệt độ, có ≥ 2 baseline để so sánh.
+
+| Chức năng | Mô tả hoạt động | Module/File |
+|-----------|-----------------|-------------|
+| Label Grouping 27→5 | Gộp 27 nhãn Summary gốc thành 5 nhóm chính: Clear, Cloudy, Foggy, Rain, Windy | `classification.py` → `LABEL_MAP` |
+| 4 mô hình phân loại | Logistic Regression, Decision Tree (baseline), Random Forest, XGBoost (cải tiến) | `classification.py` → `_build_models()` |
+| So sánh mô hình | Bảng F1-macro + Accuracy + CV 5-fold, tự động chọn model tốt nhất (RF: F1=0.755) | `classification.py` → `train_and_evaluate()` |
+| Naive Forecast | Baseline dự báo: nhiệt độ ngày mai = nhiệt độ hôm nay (MAE=1.55°C) | `forecasting.py` → `naive_forecast()` |
+| Holt-Winters | Mô hình chuỗi thời gian với seasonal_periods=365, áp dụng trên dữ liệu daily mean | `forecasting.py` → `arima_forecast()` |
+
+**Trên Web App:** Trang 🔮 "Cỗ máy AI Dự báo":
+- **Tab Dự đoán Loại TT:** Người dùng kéo 7 sliders (Nhiệt độ, Độ ẩm, Gió...) → nhấn Submit → model Random Forest dự đoán loại thời tiết → hiển thị kết quả lớn + emoji
+- **Tab Dự báo Chuỗi TG:** Chọn số ngày dự báo → Holt-Winters forecast → biểu đồ Plotly + MAE/RMSE + thống kê (TB/Max/Min) + actionable insights
+
+---
+
+### E. Thiết kế Thực nghiệm + Metric đúng (1.0đ)
+**Mục đích:** Đảm bảo thực nghiệm khoa học, có thể tái lập, metric phù hợp với từng bài toán.
+
+| Chức năng | Mô tả hoạt động | Vị trí |
+|-----------|-----------------|--------|
+| Seed cố định | `random_seed: 42` cho tất cả mô hình — đảm bảo chạy lại luôn ra cùng kết quả | `configs/params.yaml` |
+| Stratified Split | Chia train/test 80/20 giữ đúng tỷ lệ các lớp (rất quan trọng khi lớp mất cân bằng) | `classification.py` |
+| Temporal Split | Chia theo thời gian (train=trước, test=sau) — KHÔNG shuffle — tránh data leakage | `forecasting.py` |
+| Metric phù hợp | F1-macro (phân loại mất cân bằng), MAE/RMSE (dự báo), Silhouette (phân cụm) | `evaluation/metrics.py` |
+
+---
+
+### F. Nhánh thay thế — Anomaly Detection (1.0đ)
+**Mục đích:** Phát hiện các ngày thời tiết bất thường (cực đoan) bằng 2 phương pháp và so sánh.
+
+| Chức năng | Mô tả hoạt động | Module/File |
+|-----------|-----------------|-------------|
+| Isolation Forest | Xây 200 cây phân tách ngẫu nhiên, mẫu nào bị cô lập nhanh → anomaly (contamination=5%) | `anomaly.py` → `run_isolation_forest()` |
+| LOF | So sánh mật độ cục bộ của mỗi điểm với 20 láng giềng, mật độ thấp bất thường → anomaly | `anomaly.py` → `run_lof()` |
+| So sánh IF vs LOF | Tính overlap: 1,058 ngày cả hai đồng thuận (1.1%), 3,764 chỉ IF, 3,764 chỉ LOF | `anomaly.py` → `compare_methods()` |
+| Phân tích theo mùa | Mùa Đông có anomaly cao nhất (IF=10.0%), mùa Thu thấp nhất (IF=2.0%) | `anomaly.py` → `analyze_anomalies_by_season()` |
+| Top ngày bất thường | Lấy 20 ngày có combined score cao nhất + đặc trưng chi tiết (ngày, mùa, nhiệt độ...) | `anomaly.py` → `get_top_anomalies()` |
+| 3 biểu đồ | Scatter IF vs LOF, bar chart anomaly theo mùa, timeline anomaly markers trên chuỗi thời gian | `anomaly.py` → `plot_*()` |
+
+**Trên Pipeline:** Chạy ở Phase 4, output ra `outputs/tables/anomaly_summary.csv`, `anomaly_by_season.csv`, `anomaly_top_days.csv` + 3 biểu đồ PNG.
+
+---
+
+### G. Đánh giá, Phân tích lỗi & Insight hành động (1.5đ)
+**Mục đích:** Phân tích sâu các trường hợp model đoán sai, rút ra insight có thể hành động.
+
+| Chức năng | Mô tả hoạt động | Module/File |
+|-----------|-----------------|-------------|
+| Confusion Matrix | Ma trận nhầm lẫn 5×5 cho model tốt nhất — thấy rõ lớp nào hay bị nhầm | `classification.py` → `plot_confusion_matrix()` |
+| Lỗi theo Season | So sánh % lỗi giữa 4 mùa — phát hiện Summer sai nhiều nhất (13.7%) | `classification.py` → `error_analysis()` |
+| Lỗi giao mùa | So sánh tháng giao mùa (3,6,9,12) vs tháng bình thường — kiểm tra giả thuyết "giao mùa khó đoán" | `classification.py` → `error_analysis()` |
+| Lỗi cực trị nhiệt độ | So sánh sai số ở nhiệt độ cực trị (quantile 5%–95%) vs bình thường | `classification.py` → `error_analysis()` |
+| Residual Analysis | Phân tích phần dư dự báo: mean=-1.5°C (bias), std=3.57°C, 55 ngày outlier > 2σ | `forecasting.py` → `residual_analysis()` |
+
+**Trên Web App:**
+- Trang 🧠: Actionable insights cho mỗi cụm (khuyến nghị giao thông, nông nghiệp, du lịch)
+- Trang 🔮: Insights dự báo (cảnh báo đợt rét, khuyến nghị mô hình SARIMAX)
+- Insight luật kết hợp: diễn giải khuyến nghị theo mùa bằng tiếng Việt
+
+---
+
+### H. Repo GitHub chuẩn + Reproducible (1.0đ)
+**Mục đích:** Người khác có thể clone repo, cài đặt, chạy pipeline và thu được cùng kết quả.
+
+| Chức năng | Mô tả hoạt động | File |
+|-----------|-----------------|------|
+| README.md | Hướng dẫn đầy đủ: mục tiêu, data dictionary, rủi ro, cấu trúc, cài đặt, chạy, kết quả | `README.md` |
+| requirements.txt | Liệt kê 12 dependencies chính (pandas, scikit-learn, xgboost, streamlit, plotly...) | `requirements.txt` |
+| params.yaml | Tập trung TẤT CẢ tham số (8 sections) — thay đổi 1 chỗ, ảnh hưởng toàn pipeline | `configs/params.yaml` |
+| run_pipeline.py | Chạy `python scripts/run_pipeline.py` → tự động chạy 4 phase → tạo tất cả outputs trong ~330s | `scripts/run_pipeline.py` |
+| Cấu trúc module hóa | Code tách thành src/ (logic) + notebooks/ (trình bày) + configs/ (tham số) + outputs/ (kết quả) | Toàn bộ repo |
+
+---
+
+### I. Bonus: GUI App Streamlit (+điểm thưởng)
+**Mục đích:** Demo trực quan toàn bộ kết quả dự án qua giao diện web tương tác.
+
+| Trang | Chức năng trên Web | Hoạt động |
+|-------|-------------------|-----------|
+| 🌍 Bảng điều khiển | Dashboard tổng quan thời tiết | 4 KPI cards → biểu đồ Plotly Nhiệt độ + Độ ẩm (kéo zoom range slider) → phân bố theo Mùa |
+| 🧠 Khai phá Tri thức | Luật kết hợp + Phân cụm | Chọn mùa → top 5 luật bằng Tiếng Việt + insight chuyên gia ‖ Scatter plot phân cụm + hồ sơ cụm + khuyến nghị |
+| 🔮 Cỗ máy AI Dự báo | Dự đoán + Dự báo tương tác | 7 sliders → nhấn Dự đoán → kết quả loại thời tiết ‖ Chọn số ngày → Holt-Winters forecast → biểu đồ + MAE/RMSE + insights |
+
+**Cách chạy:** `streamlit run app.py` → mở `http://localhost:8501`
+
 ---
 
 ## 📁 Cấu trúc File đã hoàn thành
