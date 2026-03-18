@@ -195,8 +195,55 @@ if page == "🌍 Bảng điều khiển Thời tiết":
 
         st.markdown("")
 
+        # ── TIỀN XỬ LÝ DỮ LIỆU ──
+        st.markdown('<div class="section-header">🔧 Tiền xử lý Dữ liệu (Preprocessing)</div>', unsafe_allow_html=True)
+
+        with st.expander("📋 Xem chi tiết quá trình tiền xử lý", expanded=False):
+            # Before / After comparison
+            p1, p2, p3 = st.columns(3)
+            p1.metric("📥 Dữ liệu GỐC", "96,453 dòng × 12 cột", delta="Dữ liệu thô từ Kaggle")
+            p2.metric("📤 Sau Tiền xử lý", f"{len(df):,} dòng × {df.shape[1]} cột",
+                       delta=f"Giảm {96453 - len(df):,} dòng")
+            p3.metric("🧹 Tỷ lệ loại bỏ", f"{(96453 - len(df)) / 96453 * 100:.2f}%",
+                       delta="Dòng trùng + missing")
+
+            st.markdown("")
+            st.markdown("**🪤 3 Bẫy dữ liệu đã xử lý:**")
+
+            trap_data = pd.DataFrame({
+                "Bẫy": ["🪤 Bẫy 1", "🪤 Bẫy 2", "🪤 Bẫy 3"],
+                "Vấn đề": [
+                    "Cột Loud Cover = 0 toàn bộ 96K dòng",
+                    "Precip Type có 517 giá trị NaN (0.5%)",
+                    "Pressure có 1,288 giá trị = 0 (lỗi sensor)",
+                ],
+                "Giải pháp": [
+                    "Drop cột — không có giá trị phân tích",
+                    "Fill bằng mode = 'rain'",
+                    "Thay 0 → NaN → Median (1016.55 mbar)",
+                ],
+                "Trạng thái": ["✅ Đã xử lý", "✅ Đã xử lý", "✅ Đã xử lý"],
+            })
+            st.dataframe(trap_data, use_container_width=True, hide_index=True)
+
+            st.markdown("")
+            st.markdown("**📊 Feature Engineering:**")
+
+            fe1, fe2, fe3 = st.columns(3)
+            fe1.metric("🕐 Time Features", "5 cột mới", delta="Year, Month, Day, Hour, Season")
+            fe2.metric("📦 Binning", "3 cột mới", delta="Temp_Bin, Humidity_Bin, Wind_Bin")
+            fe3.metric("📐 Scaling", "7 cột mới", delta="StandardScaler cho 7 biến số")
+
+            # Missing values after cleaning
+            missing = df.isnull().sum()
+            total_missing = missing.sum()
+            st.markdown(f"**Missing values sau tiền xử lý:** {'✅ **0 giá trị thiếu**' if total_missing == 0 else f'⚠️ {total_missing:,} giá trị thiếu'}")
+
+        st.markdown("")
+
         # ── Interactive Plotly Chart ──
         st.markdown('<div class="section-header">📈 Biến động Nhiệt độ & Độ ẩm theo thời gian</div>', unsafe_allow_html=True)
+
 
         if "Formatted Date" in df.columns:
             df_monthly = df.set_index("Formatted Date").resample("ME").agg({
