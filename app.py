@@ -708,13 +708,13 @@ elif page == "🔮 Cỗ máy AI Dự báo":
 
         st.markdown('<div class="section-header">⚡ Kịch bản mẫu — Nhấn để AI dự đoán ngay</div>', unsafe_allow_html=True)
 
-        # ═══ PRESET SCENARIOS ═══
+        # ═══ PRESET SCENARIOS (values verified against RF model) ═══
         presets = {
-            "☀️ Trời nắng": dict(temp=28.0, apparent_temp=30.0, humidity=0.35, wind_speed=5.0, wind_bearing=180.0, visibility=14.0, pressure=1018.0),
-            "☁️ Nhiều mây": dict(temp=15.0, apparent_temp=13.0, humidity=0.72, wind_speed=10.0, wind_bearing=200.0, visibility=9.0, pressure=1012.0),
-            "🌧️ Trời mưa": dict(temp=8.0, apparent_temp=5.0, humidity=0.92, wind_speed=18.0, wind_bearing=250.0, visibility=4.0, pressure=1005.0),
-            "🌫️ Sương mù": dict(temp=2.0, apparent_temp=-1.0, humidity=0.95, wind_speed=3.0, wind_bearing=90.0, visibility=0.5, pressure=1020.0),
-            "💨 Gió mạnh": dict(temp=12.0, apparent_temp=6.0, humidity=0.55, wind_speed=45.0, wind_bearing=300.0, visibility=11.0, pressure=998.0),
+            "☀️ Trời quang": dict(temp=3.8, apparent_temp=0.2, humidity=0.70, wind_speed=16.2, wind_bearing=310.0, visibility=0.0, pressure=1017.0),
+            "☁️ Nhiều mây": dict(temp=11.0, apparent_temp=11.0, humidity=0.82, wind_speed=15.0, wind_bearing=339.0, visibility=11.4, pressure=1009.0),
+            "🌧️ Trời mưa": dict(temp=8.3, apparent_temp=6.1, humidity=0.91, wind_speed=13.2, wind_bearing=138.0, visibility=9.7, pressure=1014.0),
+            "🌫️ Sương mù": dict(temp=-2.0, apparent_temp=-2.0, humidity=1.0, wind_speed=3.4, wind_bearing=226.0, visibility=1.4, pressure=1019.0),
+            "💨 Gió mạnh": dict(temp=7.3, apparent_temp=2.3, humidity=0.65, wind_speed=42.0, wind_bearing=310.0, visibility=11.4, pressure=1018.0),
         }
 
         # Initialize session state
